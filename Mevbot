@@ -1,0 +1,104 @@
+cargo new solana_mev_bot
+cd solana_mev_bot
+[dependencies]
+solana-client = "1.10"
+solana-sdk = "1.10"
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+use solana_client::rpc_client::RpcClient;
+use solana_sdk::{pubkey::Pubkey, signature::Keypair};
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
+use tokio::time::Duration;
+
+#[derive(Deserialize, Serialize, Debug)]
+struct Transaction {
+    signature: String,
+    amount: u64,
+    price: f64,
+    // Add other relevant fields
+}
+
+async fn fetch_recent_transactions(client: &Client, url: &str) -> Result<Vec<Transaction>, Box<dyn Error>> {
+    let response = client.get(url).send().await?.json::<Vec<Transaction>>().await?;
+    Ok(response)
+}
+
+async fn monitor_and_trade() -> Result<(), Box<dyn Error>> {
+    let solana_rpc_url = "https://api.testnet.solana.com"; // Testnet endpoint
+    let solana_client = RpcClient::new(solana_rpc_url);
+
+    let trading_api_url = "http://example-dex-api.com/transactions"; // Replace with your trading API URL
+    let client = Client::new();
+
+    let large_transaction_threshold = 100_000; // Threshold for large transactions
+    let buy_price = 1.0; // Dummy value, replace with actual price fetching
+    let sell_price = 1.2; // Dummy value, replace with actual price fetching
+
+    loop {
+        let transactions = fetch_recent_transactions(&client, trading_api_url).await
+use solana_client::rpc_client::RpcClient;
+use solana_sdk::pubkey::Pubkey;
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
+
+#[derive(Deserialize, Serialize, Debug)]
+struct Transaction {
+    signature: String,
+    amount: u64,
+    price: f64,
+    // Add other relevant fields if needed
+}
+
+async fn fetch_recent_transactions(client: &Client, url: &str) -> Result<Vec<Transaction>, Box<dyn Error>> {
+    let response = client.get(url).send().await?.json::<Vec<Transaction>>().await?;
+    Ok(response)
+}
+
+async fn monitor_and_trade() -> Result<(), Box<dyn Error>> {
+    let solana_rpc_url = "https://api.testnet.solana.com"; // Solana Testnet RPC URL
+    let solana_client = RpcClient::new(solana_rpc_url);
+
+    let trading_api_url = "http://example-dex-api.com/transactions"; // Replace with your testnet trading API URL
+    let client = Client::new();
+
+    let large_transaction_threshold = 100_000; // Example threshold for large transactions
+    let buy_price = 1.0; // Dummy value for buy price
+    let sell_price = 1.2; // Dummy value for sell price
+
+    loop {
+        let transactions = fetch_recent_transactions(&client, trading_api_url).await?;
+
+        for tx in transactions {
+            if tx.amount >= large_transaction_threshold {
+                println!("Large transaction detected: {:?}", tx);
+
+                // Create a buy order before the large transaction
+                // Replace this with actual order logic using a trading API
+                println!("Placing buy order for price: {}", buy_price);
+
+                // Wait for the large transaction to be processed
+                tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
+
+                // Create a sell order after the large transaction
+                println!("Placing sell order for price: {}", sell_price);
+
+                // Exit or continue based on your strategy
+            }
+        }
+
+        // Sleep for a while before checking again
+        tokio::time::sleep(tokio::time::Duration::from_secs(60)).await;
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    monitor_and_trade().await?;
+    Ok(())
+}
+
